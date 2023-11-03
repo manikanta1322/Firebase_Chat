@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "670997623680",
+    "project_id": "zoma-a4e1c",
+    "storage_bucket": "zoma-a4e1c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:670997623680:android:6ca9f47ebff7aa88424765",
+        "android_client_info": {
+          "package_name": "Com.chatApp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "670997623680-c7tuss3dpmlei631e25dmv5ofmnn8eq3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDADgCp0b7bfcCCUm1WjCspil74vPOZ1Ss"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "670997623680-c7tuss3dpmlei631e25dmv5ofmnn8eq3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
