@@ -1,69 +1,107 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-class ChatScreen extends StatefulWidget {
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class ChatScreens extends StatefulWidget {
+  const ChatScreens({super.key, this.url});
+  final url;
   @override
-  State createState() => ChatScreenState();
+  _ChatScreensState createState() => _ChatScreensState();
 }
 
-class ChatScreenState extends State<ChatScreen> {
+class _ChatScreensState extends State<ChatScreens> {
   final TextEditingController _textController = TextEditingController();
+
+  sendMessage() async {
+    String messageText = _textController.text;
+    // String imgurl = widget.url;
+    if (messageText.isNotEmpty) {
+      await FirebaseFirestore.instance.collection('messages').add({
+        'text': messageText,
+        'timestamp': FieldValue.serverTimestamp(),
+        'imageurl': widget.url.toString(),
+      });
+      print('object');
+
+      _textController.clear();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat App'),
+        leadingWidth: 80,
+        leading: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+          child: CircleAvatar(
+            radius: 15,
+            backgroundImage: FileImage(widget.url),
+          ),
+        ),
+        title: Column(
+          children: [
+            Text('Name'),
+            Text('Offline'),
+          ],
+        ),
       ),
       body: Column(
         children: <Widget>[
-          Flexible(
-            child: ListView(
-              children: <Widget>[
-                // Chat messages will go here
-              ],
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream:
+                  FirebaseFirestore.instance.collection('messages').snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return CircularProgressIndicator();
+                }
+
+                final messages = snapshot.data!.docs.reversed;
+                List<Widget> messageWidgets = [];
+
+                for (var message in messages) {
+                  final messageData = message.data() as Map<String, dynamic>;
+                  final messageText = messageData['text'] ?? '';
+                  messageWidgets.add(
+                    ListTile(
+                      title: Text(messageText),
+                    ),
+                  );
+                }
+
+                return ListView(
+                  reverse: true,
+                  children: messageWidgets,
+                );
+              },
             ),
           ),
-          Divider(height: 1.0),
-          Container(
-            decoration: BoxDecoration(color: Theme.of(context).cardColor),
-            child: _buildTextComposer(),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextField(
+                    controller: _textController,
+                    decoration: InputDecoration(
+                      hintText: 'Type your message...',
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.send),
+                  onPressed: () {
+                    sendMessage();
+                    print(widget.url.toString());
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
-  }
-
-  Widget _buildTextComposer() {
-    return IconTheme(
-      data: IconThemeData(color: Theme.of(context).accentColor),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
-          children: <Widget>[
-            Flexible(
-              child: TextField(
-                controller: _textController,
-                onSubmitted: _handleSubmitted,
-                decoration: InputDecoration.collapsed(
-                  hintText: 'Send a message',
-                ),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 4.0),
-              child: IconButton(
-                icon: Icon(Icons.send),
-                onPressed: () => _handleSubmitted(_textController.text),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _handleSubmitted(String text) {
-    // Handle sending the message here
-    _textController.clear();
   }
 }

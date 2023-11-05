@@ -9,13 +9,15 @@ class PhoneAuthScreen extends StatefulWidget {
 class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String verificationId = "";
+  String smsCode = ""; // Added to store SMS code entered by the user.
 
   Future<void> _verifyPhone() async {
     final PhoneVerificationCompleted verificationCompleted =
         (PhoneAuthCredential credential) async {
+      // This callback will be triggered when phone number is automatically verified.
+      // You can handle the verification process here.
       await _auth.signInWithCredential(credential);
     };
-
     final PhoneVerificationFailed verificationFailed =
         (FirebaseAuthException e) {
       print('Phone verification failed: ${e.message}');
@@ -35,14 +37,19 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
       });
     };
 
-    await _auth.verifyPhoneNumber(
-      phoneNumber: '+1 555-555-5555',
-      timeout: const Duration(seconds: 60),
-      verificationCompleted: verificationCompleted,
-      verificationFailed: verificationFailed,
-      codeSent: codeSent,
-      codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
-    );
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber:
+            '+1 555-555-5555', // Replace with the phone number to verify
+        timeout: const Duration(seconds: 60),
+        verificationCompleted: verificationCompleted,
+        verificationFailed: verificationFailed,
+        codeSent: codeSent,
+        codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+      );
+    } catch (e) {
+      print('Error verifying phone number: $e');
+    }
   }
 
   Future<void> _signInWithPhoneNumber(String smsCode) async {
@@ -51,10 +58,13 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
       smsCode: smsCode,
     );
 
-    final UserCredential userCredential =
-        await _auth.signInWithCredential(credential);
-
-    print('User ID: ${userCredential.user!.uid}');
+    try {
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+      print('User ID: ${userCredential.user!.uid}');
+    } catch (e) {
+      print('Error signing in with phone number: $e');
+    }
   }
 
   @override
@@ -70,13 +80,12 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
             ),
             TextField(
               onChanged: (value) {
-                // Input field for SMS code
+                smsCode = value; // Capture the SMS code entered by the user.
               },
             ),
             ElevatedButton(
               onPressed: () {
-                _signInWithPhoneNumber(
-                    '123456'); // Replace with SMS code entered by the user
+                _signInWithPhoneNumber(smsCode); // Use the captured SMS code.
               },
               child: Text('Sign In'),
             ),

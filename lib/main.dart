@@ -1,10 +1,13 @@
+import 'package:chat_app/personaldetails.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'chatapp.dart';
 import 'login.dart';
+import 'outsidedesign.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -47,13 +50,39 @@ void main() async {
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      // Handle FCM message received when the app is in the foreground.
+      showLocalNotification(message.data);
+    });
 
-    flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-    );
+    runApp(MyApp());
   }
+}
 
-  runApp(MyApp());
+void showLocalNotification(Map<String, dynamic> messageData) {
+  final int notificationId =
+      0; // You can use a unique ID for each notification.
+
+  final AndroidNotificationDetails androidPlatformChannelSpecifics =
+      AndroidNotificationDetails(
+    channel.id,
+    channel.name,
+    channelDescription: channel.description,
+    importance: Importance.max,
+    priority: Priority.high,
+  );
+
+  final NotificationDetails platformChannelSpecifics =
+      NotificationDetails(android: androidPlatformChannelSpecifics);
+
+  flutterLocalNotificationsPlugin.show(
+    notificationId,
+    messageData['notification']
+        ['title'], // Extract notification title from data
+    messageData['notification']['body'], // Extract notification body from data
+    platformChannelSpecifics,
+    payload: 'item x', // Optional payload for additional data
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -67,6 +96,6 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: PhoneAuthScreen());
+        home: PersonalDetail());
   }
 }
